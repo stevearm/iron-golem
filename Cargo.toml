@@ -6,3 +6,5 @@ edition = "2018"
 
 [dependencies]
 git2 = "0.11.0"
+gotham = "0.4.0"
+http = "0.1.21"

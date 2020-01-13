@@ -1,4 +1,5 @@
 use git2::Repository;
+use gotham::state::State;
 use std::env;
 
 fn get_current_head() -> String {
@@ -11,8 +12,15 @@ fn get_current_head() -> String {
     head_name.into()
 }
 
+fn say_hello(state: State) -> (State, &'static str) {
+    (state, "Hello World!")
+}
+
 fn do_web() {
-    println!("do web")
+    println!("do web");
+    let addr = "127.0.0.1:7878";
+    println!("Listening for requests at http://{}", addr);
+    gotham::start(addr, || Ok(say_hello))
 }
 
 fn do_console() {
@@ -29,5 +37,27 @@ fn main() {
         "web" => do_web(),
         "console" => do_console(),
         _ => panic!("Unknown command: {}", first_arg),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use gotham::test::TestServer;
+    use http::StatusCode;
+
+    #[test]
+    fn receive_hello_world_response() {
+        let test_server = TestServer::new(|| Ok(say_hello)).unwrap();
+        let response = test_server
+            .client()
+            .get("http://localhost")
+            .perform()
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::OK);
+
+        let body = response.read_body().unwrap();
+        assert_eq!(&body[..], b"Hello World!");
     }
 }
