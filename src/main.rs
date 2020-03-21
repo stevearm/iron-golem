@@ -1,4 +1,7 @@
 use git2::Repository;
+use gotham::handler::Handler;
+use gotham::handler::HandlerFuture;
+use gotham::handler::NewHandler;
 use gotham::state::State;
 use std::env;
 
@@ -14,6 +17,21 @@ fn get_current_head() -> String {
 
 fn say_hello(state: State) -> (State, &'static str) {
     (state, "Hello World!")
+}
+
+#[derive(Copy, Clone)]
+struct MyCustomHandler;
+
+impl NewHandler for MyCustomHandler {
+    type Instance = Self;
+
+    fn new_handler(&self) -> gotham::error::Result<Self> {
+        Ok(*self)
+    }
+}
+
+impl Handler for MyCustomHandler {
+    fn handle(self, _state: State) -> Box<HandlerFuture> {}
 }
 
 fn do_web() {
